@@ -1,0 +1,139 @@
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine("1. Создать файл и записать данные");
+        Console.WriteLine("2. Прочитать данные из файла");
+        Console.WriteLine("3. Записать данные параллельно через потоки");
+        Console.WriteLine("4. Удалить файл");
+        Console.WriteLine("5. Выход");
+
+        while (true)
+        {
+            Console.Write("Введите номер команды: ");
+            int command = Convert.ToInt32(Console.ReadLine());
+
+            switch (command)
+            {
+                case 1:
+                    CreateAndWriteFile();
+                    break;
+                case 2:
+                    ReadFromFile();
+                    break;
+                case 3:
+                    WriteParallel();
+                    break;
+                case 4:
+                    DeleteFile();
+                    break;
+                case 5:
+                    return;
+                default:
+                    Console.WriteLine("Неправильный номер команды");
+                    break;
+            }
+        }
+    }
+
+    static void CreateAndWriteFile()
+    {
+        try
+        {
+            string fileName = "log.txt";
+            using (StreamWriter writer = File.CreateText(fileName))
+            {
+                for (int i = 0; i < 10; i++)
+                {
+                    writer.WriteLine(DateTime.Now.ToString());
+                }
+            }
+            Console.WriteLine("Файл создан и данные записаны.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка создания файла: " + ex.Message);
+        }
+    }
+
+    static void ReadFromFile()
+    {
+        try
+        {
+            string fileName = "log.txt";
+            using (StreamReader reader = File.OpenText(fileName))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    Console.WriteLine(line);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка чтения файла: " + ex.Message);
+        }
+    }
+
+    static void WriteParallel()
+    {
+        try
+        {
+            string fileName = "log.txt";
+            using (StreamWriter writer = File.CreateText(fileName))
+            {
+                Task task1 = Task.Run(() =>
+                {
+                    for (int i = 0; i < 5; i++)
+                    {
+                        writer.WriteLine("Поток 1: Запись выполнена в " + DateTime.Now.ToString());
+                        Thread.Sleep(100);
+                    }
+                });
+
+                Task task2 = Task.Run(() =>
+                {
+                    for (int i = 0; i < 5; i++)
+                    {
+                        writer.WriteLine("Поток 2: Запись выполнена в " + DateTime.Now.ToString());
+                        Thread.Sleep(100);
+                    }
+                });
+
+                Task.WaitAll(task1, task2);
+            }
+            Console.WriteLine("Параллельная запись данных выполнена.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка параллельной записи: " + ex.Message);
+        }
+    }
+
+    static void DeleteFile()
+    {
+        try
+        {
+            string fileName = "log.txt";
+            if (File.Exists(fileName))
+            {
+                File.Delete(fileName);
+                Console.WriteLine("Файл удален.");
+            }
+            else
+            {
+                Console.WriteLine("Файл не существует.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Ошибка удаления файла: " + ex.Message);
+        }
+    }
+}
